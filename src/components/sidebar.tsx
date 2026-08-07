@@ -1,3 +1,12 @@
+import {
+  BuildingIcon,
+  HistoryIcon,
+  LandmarkIcon,
+  PlugIcon,
+  TicketIcon,
+  UsersIcon,
+} from "lucide-react";
+
 import { listarTenants } from "@/application/tenants/listar-tenants";
 import { auth, repos } from "@/lib/server";
 
@@ -19,8 +28,6 @@ export async function Sidebar() {
   ];
 
   if (tenants.length > 0) {
-    // Sección "Operación": un sub-link por tenant (cargas + historial).
-    // Cuando agreguemos retiros/pagos, se suman acá.
     const operacionItems = tenants.flatMap((t) => [
       {
         href: `/backoffice/${t.slug}/cargas`,
@@ -34,6 +41,27 @@ export async function Sidebar() {
       },
     ]);
     sections.push({ label: "Operación", items: operacionItems });
+
+    // Administración: visible solo si el usuario es tenant_admin de algún tenant.
+    // Hoy asumimos que si tiene acceso al tenant, ve el bloque (chequeo fino en cada página).
+    const adminItems = tenants.flatMap((t) => [
+      {
+        href: `/backoffice/${t.slug}/miembros`,
+        label: `Miembros · ${t.nombre}`,
+        iconKey: "users" as const,
+      },
+      {
+        href: `/backoffice/${t.slug}/cbu`,
+        label: `CBU · ${t.nombre}`,
+        iconKey: "bank" as const,
+      },
+      {
+        href: `/backoffice/${t.slug}/casino`,
+        label: `Casino · ${t.nombre}`,
+        iconKey: "plug" as const,
+      },
+    ]);
+    sections.push({ label: "Administración", items: adminItems });
   }
 
   if (esSuperadmin) {
