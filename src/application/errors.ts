@@ -52,6 +52,9 @@ export const codigos = {
   // Idempotencia
   DUPLICADO_POR_EXTERNAL_REF: "DUPLICADO_POR_EXTERNAL_REF",
 
+  // TenantConfig (jsonb validado por Zod)
+  TENANT_CONFIG_INVALIDA: "TENANT_CONFIG_INVALIDA",
+
   // Input
   INPUT_INVALIDO: "INPUT_INVALIDO",
 } as const;
