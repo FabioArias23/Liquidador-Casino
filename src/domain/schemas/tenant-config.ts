@@ -16,11 +16,19 @@ import { type ErrorNegocio, errorNegocio, type Result, ok, err } from "../result
 
 /** Mapping declarativo del casino para ConfigurableHttpAdapter. */
 export const casinoMappingSchema = z.object({
+  /** Tipo de adapter (default: "configurable_http"). */
   adapterType: z.string().min(1),
+  /** Base URL del endpoint de cargas del casino (sin trailing slash). */
+  baseUrl: z.string().url(),
+  /** Path dot-notation en la respuesta para el monto (en centavos). */
   montoPath: z.string().min(1),
+  /** Path dot-notation para el ref del jugador. */
   playerRefPath: z.string().min(1),
+  /** Path dot-notation para el ID externo (idempotencia). */
   externalRefPath: z.string().min(1),
+  /** Path dot-notation para el timestamp. */
   timestampPath: z.string().min(1),
+  /** Headers extra para autenticar al casino. */
   authHeaders: z.record(z.string(), z.string()),
 });
 
@@ -35,6 +43,7 @@ export type TenantConfigInput = z.infer<typeof tenantConfigSchema>;
 export interface TenantConfigValidado {
   casinoMapping: {
     adapterType: string;
+    baseUrl: string;
     montoPath: string;
     playerRefPath: string;
     externalRefPath: string;
@@ -77,6 +86,7 @@ export function tenantConfigDefault(): TenantConfigInput {
   return {
     casinoMapping: {
       adapterType: "configurable_http",
+      baseUrl: "http://localhost:3000/api/casino-mock/casino-demo",
       montoPath: "data.monto_cents",
       playerRefPath: "data.player_ref",
       externalRefPath: "data.id",

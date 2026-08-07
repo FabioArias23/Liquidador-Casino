@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
 import {
   accionAsentarCarga,
   accionRechazarCarga,
@@ -24,7 +25,6 @@ export function AccionesCarga({
 }: AccionesProps) {
   const [modoRechazar, setModoRechazar] = useState(false);
   const [motivo, setMotivo] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   if (estado === "settled" || estado === "rejected") {
     return (
@@ -34,25 +34,18 @@ export function AccionesCarga({
     );
   }
 
-  const cerrar = () => {
-    setModoRechazar(false);
-    setMotivo("");
-    setError(null);
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <form
           action={async () => {
-            const result = await accionValidarCarga(
+            const r = await accionValidarCarga(
               tenantSlug,
               cargaId,
               comprobanteUrl ?? "",
             );
-            if (!result.ok && result.error) {
-              setError(result.error.mensaje);
-            }
+            if (r.ok) toast.success("Carga validada");
+            else toast.error(r.error?.mensaje ?? "No se pudo validar");
           }}
         >
           <ButtonSubmitPending idleLabel="Validar" pendingLabel="Validando..." />
@@ -70,17 +63,12 @@ export function AccionesCarga({
         {estado === "validated" && (
           <form
             action={async () => {
-              const result = await accionAsentarCarga(tenantSlug, cargaId);
-              if (!result.ok && result.error) {
-                setError(result.error.mensaje);
-              }
+              const r = await accionAsentarCarga(tenantSlug, cargaId);
+              if (r.ok) toast.success("Carga asentada y registrada en ledger");
+              else toast.error(r.error?.mensaje ?? "No se pudo asentar");
             }}
           >
-            <ButtonSubmitPending
-              idleLabel="Asentar"
-              pendingLabel="Asentando..."
-              variant="default"
-            />
+            <ButtonSubmitPending idleLabel="Asentar" pendingLabel="Asentando..." />
           </form>
         )}
       </div>
@@ -90,14 +78,16 @@ export function AccionesCarga({
           action={async (formData: FormData) => {
             const m = String(formData.get("motivo") ?? "");
             if (m.trim().length < 3) {
-              setError("El motivo debe tener al menos 3 caracteres.");
+              toast.error("El motivo debe tener al menos 3 caracteres.");
               return;
             }
-            const result = await accionRechazarCarga(tenantSlug, cargaId, m);
-            if (!result.ok && result.error) {
-              setError(result.error.mensaje);
+            const r = await accionRechazarCarga(tenantSlug, cargaId, m);
+            if (r.ok) {
+              toast.success("Carga rechazada");
+              setModoRechazar(false);
+              setMotivo("");
             } else {
-              cerrar();
+              toast.error(r.error?.mensaje ?? "No se pudo rechazar");
             }
           }}
           className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3"
@@ -125,15 +115,6 @@ export function AccionesCarga({
           </button>
         </form>
       )}
-
-      {error && (
-        <p
-          role="alert"
-          className="text-sm text-destructive"
-        >
-          {error}
-        </p>
-      )}
     </div>
   );
 }
@@ -141,22 +122,16 @@ export function AccionesCarga({
 function ButtonSubmitPending({
   idleLabel,
   pendingLabel,
-  variant = "default",
 }: {
   idleLabel: string;
   pendingLabel: string;
-  variant?: "default" | "destructive";
 }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
       disabled={pending}
-      className={
-        variant === "destructive"
-          ? "inline-flex h-8 items-center rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-60"
-          : "inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-      }
+      className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
     >
       {pending ? pendingLabel : idleLabel}
     </button>

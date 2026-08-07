@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Sidebar />
           <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

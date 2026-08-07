@@ -12,6 +12,8 @@ import { formatear } from "@/domain/money";
 import { auth, repos } from "@/lib/server";
 import { formatRelativeTime } from "@/lib/format";
 
+import { BotonTraerDelCasino } from "./boton-traer-casino";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{
@@ -55,13 +57,16 @@ export default async function CargasPage({ params, searchParams }: PageProps) {
               : `${cargas.length} carga${cargas.length === 1 ? "" : "s"}.`}
           </p>
         </div>
-        <Link
-          href={`/backoffice/${slug}/cargas/nueva`}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <PlusIcon className="size-3.5" strokeWidth={2} />
-          Nueva carga manual
-        </Link>
+        <div className="flex items-center gap-2">
+          <BotonTraerDelCasino tenantSlug={slug} />
+          <Link
+            href={`/backoffice/${slug}/cargas/nueva`}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <PlusIcon className="size-3.5" strokeWidth={2} />
+            Nueva carga manual
+          </Link>
+        </div>
       </header>
 
       {/* Filtros: hoy URL-based; cuando agreguemos más, los movemos a componente client */}
