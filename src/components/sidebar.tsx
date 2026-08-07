@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+
 import { listarTenants } from "@/application/tenants/listar-tenants";
 import { auth, repos } from "@/lib/server";
 
@@ -11,48 +13,81 @@ export async function Sidebar() {
   if (!r.ok) return null;
   const { tenants, esSuperadmin } = r.data;
 
-  const sections: SidebarSection[] = [
-    {
-      label: "Navegación",
-      items: [{ href: "/", label: "Inicio", iconKey: "building" }],
-    },
+  // El middleware (src/middleware.ts) setea `x-tenant-slug` cuando la URL
+  // está adentro de /backoffice/[slug]/*. Si no, no hay tenant activo.
+  const h = await headers();
+  const activeSlug = h.get("x-tenant-slug") ?? null;
+  const activeTenant = activeSlug
+    ? tenants.find((t) => t.slug === activeSlug) ?? null
+    : null;
+
+  const sections: SidebarSection[] = [];
+
+  // ── Navegación ──────────────────────────────────────────────────────────
+  const navItems: SidebarSection["items"] = [
+    { href: "/", label: "Inicio", iconKey: "building" },
   ];
+  if (activeTenant) {
+    navItems.push({
+      href: `/backoffice/${activeTenant.slug}`,
+      label: "Volver al inicio del tenant",
+      iconKey: "ticket",
+    });
+  }
+  sections.push({ label: "Navegación", items: navItems });
 
-  if (tenants.length > 0) {
-    const operacionItems = tenants.flatMap((t) => [
-      {
-        href: `/backoffice/${t.slug}/cargas`,
-        label: `Cargas · ${t.nombre}`,
-        iconKey: "ticket" as const,
-      },
-      {
-        href: `/backoffice/${t.slug}/historial`,
-        label: `Historial · ${t.nombre}`,
-        iconKey: "history" as const,
-      },
-    ]);
-    sections.push({ label: "Operación", items: operacionItems });
+  // ── Tenants (solo si NO hay tenant activo) ───────────────────────────────
+  if (!activeTenant) {
+    if (tenants.length > 0) {
+      sections.push({
+        label: "Tus accesos",
+        items: tenants.map((t) => ({
+          href: `/backoffice/${t.slug}`,
+          label: t.nombre,
+          iconKey: "ticket" as const,
+        })),
+      });
+    }
+  } else {
+    // ── Operación (del tenant activo) ────────────────────────────────────
+    sections.push({
+      label: "Operación",
+      items: [
+        {
+          href: `/backoffice/${activeTenant.slug}/cargas`,
+          label: "Cargas",
+          iconKey: "ticket" as const,
+        },
+        {
+          href: `/backoffice/${activeTenant.slug}/historial`,
+          label: "Historial",
+          iconKey: "history" as const,
+        },
+      ],
+    });
 
-    // Administración: visible solo si el usuario es tenant_admin de algún tenant.
-    // Hoy asumimos que si tiene acceso al tenant, ve el bloque (chequeo fino en cada página).
-    const adminItems = tenants.flatMap((t) => [
-      {
-        href: `/backoffice/${t.slug}/miembros`,
-        label: `Miembros · ${t.nombre}`,
-        iconKey: "users" as const,
-      },
-      {
-        href: `/backoffice/${t.slug}/cbu`,
-        label: `CBU · ${t.nombre}`,
-        iconKey: "bank" as const,
-      },
-      {
-        href: `/backoffice/${t.slug}/casino`,
-        label: `Casino · ${t.nombre}`,
-        iconKey: "plug" as const,
-      },
-    ]);
-    sections.push({ label: "Administración", items: adminItems });
+    // ── Administración (del tenant activo) ──────────────────────────────
+    // El chequeo fino de permiso se hace en cada page.
+    sections.push({
+      label: "Administración",
+      items: [
+        {
+          href: `/backoffice/${activeTenant.slug}/miembros`,
+          label: "Miembros",
+          iconKey: "users" as const,
+        },
+        {
+          href: `/backoffice/${activeTenant.slug}/cbu`,
+          label: "CBU",
+          iconKey: "bank" as const,
+        },
+        {
+          href: `/backoffice/${activeTenant.slug}/casino`,
+          label: "Casino",
+          iconKey: "plug" as const,
+        },
+      ],
+    });
   }
 
   if (esSuperadmin) {

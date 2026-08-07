@@ -1,15 +1,7 @@
 import Link from "next/link";
-import {
-  ArrowRightIcon,
-  BuildingIcon,
-  CircleDollarSignIcon,
-  CircleSlashIcon,
-  ListChecksIcon,
-  LogInIcon,
-  WalletIcon,
-} from "lucide-react";
+import { redirect } from "next/navigation";
+import { ArrowRightIcon, BuildingIcon, LogInIcon } from "lucide-react";
 
-import { listarCargas } from "@/application/cargas/listar-cargas";
 import { listarTenants } from "@/application/tenants/listar-tenants";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { KpiCard } from "@/components/ui/kpi-card";
 import { StatusPill } from "@/components/ui/status-pill";
-import { formatear } from "@/domain/money";
 import { auth, repos } from "@/lib/server";
 
 export default async function Home() {
@@ -56,9 +46,11 @@ export default async function Home() {
 
   const { tenants, esSuperadmin } = r.data;
 
-  // KPIs del primer tenant (demo-ready: si hay más tenants, expandimos).
-  const tenantActivo = tenants[0];
-  const kpis = tenantActivo ? await cargarKpis(tenantActivo.id) : null;
+  // Si solo hay 1 tenant, entramos directo. Esto evita un click innecesario
+  // cuando hay un único casino configurado.
+  if (tenants.length === 1) {
+    redirect(`/backoffice/${tenants[0].slug}`);
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -72,44 +64,13 @@ export default async function Home() {
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          {esSuperadmin
-            ? `Ves los ${tenants.length} tenant${tenants.length === 1 ? "" : "s"} de la plataforma.`
-            : tenants.length === 0
-              ? "No sos miembro activo de ningún tenant todavía."
-              : `Sos miembro de ${tenants.length} tenant${tenants.length === 1 ? "" : "s"}.`}
+          {tenants.length === 0
+            ? "No sos miembro activo de ningún tenant todavía."
+            : esSuperadmin
+              ? `Administrás los ${tenants.length} tenants de la plataforma.`
+              : `Sos miembro de ${tenants.length} tenant${tenants.length === 1 ? "" : "s"}. Elegí uno para entrar.`}
         </p>
       </header>
-
-      {kpis && (
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            label="Cargas hoy"
-            value={kpis.cantidadHoy.toString()}
-            icon={ListChecksIcon}
-            href={tenantActivo ? `/backoffice/${tenantActivo.slug}/cargas` : undefined}
-          />
-          <KpiCard
-            label="Pendientes"
-            value={kpis.pendientes.toString()}
-            icon={CircleDollarSignIcon}
-            href={
-              tenantActivo
-                ? `/backoffice/${tenantActivo.slug}/cargas?estado=pending`
-                : undefined
-            }
-          />
-          <KpiCard
-            label="Asentadas hoy"
-            value={kpis.asentadasHoy.toString()}
-            icon={WalletIcon}
-          />
-          <KpiCard
-            label="Monto liquidado hoy"
-            value={formatear(kpis.montoLiquidadoHoyCents, "ARS")}
-            icon={CircleSlashIcon}
-          />
-        </section>
-      )}
 
       {tenants.length === 0 ? (
         <Card>
@@ -125,7 +86,7 @@ export default async function Home() {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              {esSuperadmin ? "Tus tenants" : "Tus accesos"}
+              {esSuperadmin ? "Tus tenants" : "Elegí un tenant para entrar"}
             </h2>
             {esSuperadmin && (
               <Button asChild variant="ghost" size="sm">
@@ -140,7 +101,7 @@ export default async function Home() {
             {tenants.map((t) => (
               <Link
                 key={t.id}
-                href={`/backoffice/${t.slug}/cargas`}
+                href={`/backoffice/${t.slug}`}
                 data-slot="tenant-card"
                 className="group/tenant-card flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-sunken"
               >
@@ -173,29 +134,4 @@ export default async function Home() {
       )}
     </div>
   );
-}
-
-async function cargarKpis(tenantId: import("@/domain/ids").TenantId) {
-  const r = await repos();
-  const todas = await listarCargas(r, tenantId);
-  const inicioDelDia = new Date();
-  inicioDelDia.setHours(0, 0, 0, 0);
-
-  const cantidadHoy = todas.filter((c) => c.createdAt >= inicioDelDia).length;
-  const pendientes = todas.filter(
-    (c) => c.estado === "pending" || c.estado === "validating",
-  ).length;
-  const asentadasHoy = todas.filter(
-    (c) => c.estado === "settled" && c.createdAt >= inicioDelDia,
-  ).length;
-  const montoLiquidadoHoyCents = todas
-    .filter((c) => c.estado === "settled" && c.createdAt >= inicioDelDia)
-    .reduce((acc, c) => acc + c.montoCents, 0);
-
-  return {
-    cantidadHoy,
-    pendientes,
-    asentadasHoy,
-    montoLiquidadoHoyCents,
-  };
 }
