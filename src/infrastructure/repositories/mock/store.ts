@@ -86,25 +86,32 @@ export class MockStore {
 
   loadSnapshot(snap: Snapshot): void {
     this.reset();
-    for (const [k, v] of Object.entries(snap.tenants))
-      this.tenants.set(k as TenantId, v);
-    for (const [k, v] of Object.entries(snap.profiles)) {
-      this.profiles.set(k as UserId, v);
-      this.emails.set(v.email.toLowerCase(), v.id);
+    // Defensivo: snapshots viejos (de antes de Phase 2) no tienen las keys
+    // nuevas. Las tratamos como {} para que la migración sea silenciosa.
+    const safe = <K extends keyof Snapshot>(k: K): Record<string, Snapshot[K] extends Record<string, infer V> | undefined ? V : never> => {
+      const v = snap[k] as unknown;
+      return (v && typeof v === "object" ? v : {}) as never;
+    };
+    for (const [k, v] of Object.entries(safe("tenants")))
+      this.tenants.set(k as TenantId, v as Tenant);
+    for (const [k, v] of Object.entries(safe("profiles"))) {
+      const profile = v as Profile;
+      this.profiles.set(k as UserId, profile);
+      this.emails.set(profile.email.toLowerCase(), profile.id);
     }
-    for (const [k, v] of Object.entries(snap.members))
-      this.members.set(k as MemberId, v);
-    for (const [k, v] of Object.entries(snap.cbuAccounts))
-      this.cbuAccounts.set(k as CbuAccountId, v);
-    for (const [k, v] of Object.entries(snap.casinoCredentials))
-      this.casinoCredentials.set(k as CasinoCredentialsId, v);
-    // Phase 2
-    for (const [k, v] of Object.entries(snap.cargas))
-      this.cargas.set(k as CargaId, v);
-    for (const [k, v] of Object.entries(snap.ledgerEntries))
-      this.ledgerEntries.set(k as LedgerEntryId, v);
-    for (const [k, v] of Object.entries(snap.auditLog))
-      this.auditLog.set(k as AuditLogId, v);
+    for (const [k, v] of Object.entries(safe("members")))
+      this.members.set(k as MemberId, v as Member);
+    for (const [k, v] of Object.entries(safe("cbuAccounts")))
+      this.cbuAccounts.set(k as CbuAccountId, v as CbuAccount);
+    for (const [k, v] of Object.entries(safe("casinoCredentials")))
+      this.casinoCredentials.set(k as CasinoCredentialsId, v as CasinoCredentials);
+    // Phase 2 — defaults a {} si el snapshot es viejo
+    for (const [k, v] of Object.entries(safe("cargas")))
+      this.cargas.set(k as CargaId, v as Carga);
+    for (const [k, v] of Object.entries(safe("ledgerEntries")))
+      this.ledgerEntries.set(k as LedgerEntryId, v as LedgerEntry);
+    for (const [k, v] of Object.entries(safe("auditLog")))
+      this.auditLog.set(k as AuditLogId, v as AuditLog);
   }
 }
 
