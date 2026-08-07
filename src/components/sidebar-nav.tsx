@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BuildingIcon,
+  HistoryIcon,
   type LucideIcon,
   TicketIcon,
 } from "lucide-react";
@@ -16,11 +17,12 @@ import { cn } from "@/lib/utils";
  * el cliente resuelve contra este map. Patrón estándar para pasar data entre
  * límites server/client sin serializar componentes React (que no se puede).
  */
-export type SidebarIconKey = "building" | "ticket";
+export type SidebarIconKey = "building" | "ticket" | "history";
 
 const ICON_MAP: Record<SidebarIconKey, LucideIcon> = {
   building: BuildingIcon,
   ticket: TicketIcon,
+  history: HistoryIcon,
 };
 
 export interface SidebarItem {

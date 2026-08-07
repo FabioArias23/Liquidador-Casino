@@ -19,14 +19,21 @@ export async function Sidebar() {
   ];
 
   if (tenants.length > 0) {
-    sections.push({
-      label: "Operación",
-      items: tenants.map((t) => ({
-        href: `/backoffice/${t.slug}`,
-        label: t.nombre,
+    // Sección "Operación": un sub-link por tenant (cargas + historial).
+    // Cuando agreguemos retiros/pagos, se suman acá.
+    const operacionItems = tenants.flatMap((t) => [
+      {
+        href: `/backoffice/${t.slug}/cargas`,
+        label: `Cargas · ${t.nombre}`,
         iconKey: "ticket" as const,
-      })),
-    });
+      },
+      {
+        href: `/backoffice/${t.slug}/historial`,
+        label: `Historial · ${t.nombre}`,
+        iconKey: "history" as const,
+      },
+    ]);
+    sections.push({ label: "Operación", items: operacionItems });
   }
 
   if (esSuperadmin) {
