@@ -105,6 +105,9 @@ export interface Retiro {
   rechazadaAprobacionPor: UserId | null;
   pagadaPor: UserId | null;
 
+  /** Clave de idempotencia para pagos manuales (evita doble pago por reintento). */
+  idempotencyKey: string | null;
+
   version: number;
   createdAt: Date;
   updatedAt: Date;
