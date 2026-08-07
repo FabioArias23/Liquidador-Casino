@@ -12,6 +12,10 @@ export type UserId = Brand<string, "UserId">;
 export type MemberId = Brand<string, "MemberId">;
 export type CbuAccountId = Brand<string, "CbuAccountId">;
 export type CasinoCredentialsId = Brand<string, "CasinoCredentialsId">;
+export type CargaId = Brand<string, "CargaId">;
+export type LedgerEntryId = Brand<string, "LedgerEntryId">;
+export type AuditLogId = Brand<string, "AuditLogId">;
+export type TenantConfigId = Brand<string, "TenantConfigId">;
 
 export const tenantId = (s: string): TenantId => s as TenantId;
 export const userId = (s: string): UserId => s as UserId;
@@ -19,6 +23,10 @@ export const memberId = (s: string): MemberId => s as MemberId;
 export const cbuAccountId = (s: string): CbuAccountId => s as CbuAccountId;
 export const casinoCredentialsId = (s: string): CasinoCredentialsId =>
   s as CasinoCredentialsId;
+export const cargaId = (s: string): CargaId => s as CargaId;
+export const ledgerEntryId = (s: string): LedgerEntryId => s as LedgerEntryId;
+export const auditLogId = (s: string): AuditLogId => s as AuditLogId;
+export const tenantConfigId = (s: string): TenantConfigId => s as TenantConfigId;
 
 /** Genera un UUID v4 nativo (Node 22+). */
 export function nuevoId(): string {
