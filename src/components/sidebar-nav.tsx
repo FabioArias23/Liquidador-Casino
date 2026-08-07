@@ -41,6 +41,8 @@ export interface SidebarItem {
   href: string;
   label: string;
   iconKey: SidebarIconKey;
+  /** Si es true, solo se considera activo cuando pathname === href (no en sub-rutas). Útil para índices de sección. */
+  exactMatch?: boolean;
 }
 
 export interface SidebarSection {
@@ -89,7 +91,11 @@ function SidebarSectionView({
         <SidebarItemView
           key={item.href}
           item={item}
-          isActive={pathname === item.href || pathname.startsWith(item.href + "/")}
+          isActive={
+            item.exactMatch
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + "/")
+          }
         />
       ))}
     </div>

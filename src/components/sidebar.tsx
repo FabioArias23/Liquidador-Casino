@@ -30,8 +30,9 @@ export async function Sidebar() {
   if (activeTenant) {
     navItems.push({
       href: `/backoffice/${activeTenant.slug}`,
-      label: "Volver al inicio del tenant",
+      label: `Inicio · ${activeTenant.nombre}`,
       iconKey: "ticket",
+      exactMatch: true,
     });
   }
   sections.push({ label: "Navegación", items: navItems });
