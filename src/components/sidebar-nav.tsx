@@ -3,15 +3,30 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
-import { HomeIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  BuildingIcon,
+  type LucideIcon,
+  TicketIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
+
+/**
+ * Íconos permitidos en el sidebar. El server component pasa la KEY (string),
+ * el cliente resuelve contra este map. Patrón estándar para pasar data entre
+ * límites server/client sin serializar componentes React (que no se puede).
+ */
+export type SidebarIconKey = "building" | "ticket";
+
+const ICON_MAP: Record<SidebarIconKey, LucideIcon> = {
+  building: BuildingIcon,
+  ticket: TicketIcon,
+};
 
 export interface SidebarItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  iconKey: SidebarIconKey;
 }
 
 export interface SidebarSection {
@@ -74,7 +89,7 @@ function SidebarItemView({
   item: SidebarItem;
   isActive: boolean;
 }) {
-  const Icon = item.icon;
+  const Icon = ICON_MAP[item.iconKey];
   return (
     <Link
       href={item.href}
@@ -102,8 +117,3 @@ function SidebarItemView({
     </Link>
   );
 }
-
-export const SIDEBAR_ICONS = {
-  HomeIcon,
-  ShieldCheckIcon,
-} as const;

@@ -1,8 +1,3 @@
-import {
-  BuildingIcon,
-  TicketIcon,
-} from "lucide-react";
-
 import { listarTenants } from "@/application/tenants/listar-tenants";
 import { auth, repos } from "@/lib/server";
 
@@ -19,7 +14,7 @@ export async function Sidebar() {
   const sections: SidebarSection[] = [
     {
       label: "Navegación",
-      items: [{ href: "/", label: "Inicio", icon: BuildingIcon }],
+      items: [{ href: "/", label: "Inicio", iconKey: "building" }],
     },
   ];
 
@@ -29,7 +24,7 @@ export async function Sidebar() {
       items: tenants.map((t) => ({
         href: `/backoffice/${t.slug}`,
         label: t.nombre,
-        icon: TicketIcon,
+        iconKey: "ticket" as const,
       })),
     });
   }
@@ -38,7 +33,7 @@ export async function Sidebar() {
     sections.push({
       label: "Plataforma",
       items: [
-        { href: "/superadmin/tenants", label: "Tenants", icon: TicketIcon },
+        { href: "/superadmin/tenants", label: "Tenants", iconKey: "ticket" },
       ],
     });
   }
