@@ -12,15 +12,21 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 import type {
+  AuditLog,
+  Carga,
   CasinoCredentials,
   CbuAccount,
+  LedgerEntry,
   Member,
   Profile,
   Tenant,
 } from "@/domain/entities";
 import type {
+  AuditLogId,
+  CargaId,
   CasinoCredentialsId,
   CbuAccountId,
+  LedgerEntryId,
   MemberId,
   TenantId,
   UserId,
@@ -32,17 +38,26 @@ interface Snapshot {
   members: Record<string, Member>;
   cbuAccounts: Record<string, CbuAccount>;
   casinoCredentials: Record<string, CasinoCredentials>;
+  // Phase 2
+  cargas: Record<string, Carga>;
+  ledgerEntries: Record<string, LedgerEntry>;
+  auditLog: Record<string, AuditLog>;
 }
 
 export class MockStore {
+  // Phase 1
   tenants = new Map<TenantId, Tenant>();
   profiles = new Map<UserId, Profile>();
   members = new Map<MemberId, Member>();
   cbuAccounts = new Map<CbuAccountId, CbuAccount>();
   casinoCredentials = new Map<CasinoCredentialsId, CasinoCredentials>();
-
   /** Email → userId para búsquedas rápidas (members vienen con email desnormalizado). */
   emails = new Map<string, UserId>();
+
+  // Phase 2
+  cargas = new Map<CargaId, Carga>();
+  ledgerEntries = new Map<LedgerEntryId, LedgerEntry>();
+  auditLog = new Map<AuditLogId, AuditLog>();
 
   reset(): void {
     this.tenants.clear();
@@ -51,6 +66,9 @@ export class MockStore {
     this.cbuAccounts.clear();
     this.casinoCredentials.clear();
     this.emails.clear();
+    this.cargas.clear();
+    this.ledgerEntries.clear();
+    this.auditLog.clear();
   }
 
   toSnapshot(): Snapshot {
@@ -60,6 +78,9 @@ export class MockStore {
       members: Object.fromEntries(this.members),
       cbuAccounts: Object.fromEntries(this.cbuAccounts),
       casinoCredentials: Object.fromEntries(this.casinoCredentials),
+      cargas: Object.fromEntries(this.cargas),
+      ledgerEntries: Object.fromEntries(this.ledgerEntries),
+      auditLog: Object.fromEntries(this.auditLog),
     };
   }
 
@@ -77,6 +98,13 @@ export class MockStore {
       this.cbuAccounts.set(k as CbuAccountId, v);
     for (const [k, v] of Object.entries(snap.casinoCredentials))
       this.casinoCredentials.set(k as CasinoCredentialsId, v);
+    // Phase 2
+    for (const [k, v] of Object.entries(snap.cargas))
+      this.cargas.set(k as CargaId, v);
+    for (const [k, v] of Object.entries(snap.ledgerEntries))
+      this.ledgerEntries.set(k as LedgerEntryId, v);
+    for (const [k, v] of Object.entries(snap.auditLog))
+      this.auditLog.set(k as AuditLogId, v);
   }
 }
 

@@ -11,18 +11,24 @@
  */
 
 import type {
+  AuditLog,
+  Carga,
   CasinoCredentials,
   CbuAccount,
+  LedgerEntry,
   Member,
   Profile,
   Tenant,
 } from "@/domain/entities";
 import type {
+  CargaId,
   CbuAccountId,
   MemberId,
   TenantId,
   UserId,
 } from "@/domain/ids";
+import type { EstadoCarga } from "@/domain/cargas";
+import type { ErrorNegocio, Result } from "@/domain/result";
 import type { Rol } from "@/domain/roles";
 
 // ─── Tenants ────────────────────────────────────────────────────────────────
@@ -115,4 +121,90 @@ export interface CasinoCredentialsRepository {
     },
     ctx?: { actor: UserId },
   ): Promise<CasinoCredentials>;
+}
+
+// ─── Phase 2: Cargas + Ledger + Audit ────────────────────────────────────────
+
+/** Filtros opcionales para listar cargas de un tenant. */
+export interface ListarCargasFiltros {
+  estado?: EstadoCarga;
+  desde?: Date;
+  hasta?: Date;
+  playerRef?: string;
+  limit?: number;
+}
+
+export interface CargaRepository {
+  /** Inserta una carga nueva (estado inicial: pending). */
+  crear(carga: Carga): Promise<Carga>;
+
+  /** Obtiene por ID dentro de un tenant (no cross-tenant). */
+  obtenerPorId(tenantId: TenantId, id: CargaId): Promise<Carga | null>;
+
+  /** Busca por externalRef (para idempotencia del casino). Null si no existe. */
+  obtenerPorTenantYExternalRef(
+    tenantId: TenantId,
+    externalRef: string,
+  ): Promise<Carga | null>;
+
+  /** Lista cargas de un tenant, ordenadas por created_at desc. */
+  listarPorTenant(
+    tenantId: TenantId,
+    filtros?: ListarCargasFiltros,
+  ): Promise<Carga[]>;
+
+  /**
+   * Update atómico con optimistic lock.
+   * Si la versión del storage difiere de `expectedVersion`, falla con
+   * `CONCURRENCIA` (otro operador ya actualizó la carga).
+   */
+  actualizar(
+    carga: Carga,
+    expectedVersion: number,
+  ): Promise<Result<Carga, ErrorNegocio>>;
+}
+
+/**
+ * LedgerRepository — append-only.
+ * El dominio (domain/ledger.ts) garantiza el invariante de partida doble
+ * antes de llamar al repositorio.
+ */
+export interface LedgerRepository {
+  /**
+   * Inserta 2 entries en una sola operación (atómica).
+   * Devuelve el asientoId generado y las entries persistidas.
+   */
+  append(entries: [LedgerEntry, LedgerEntry]): Promise<{
+    asientoId: string;
+    entries: [LedgerEntry, LedgerEntry];
+  }>;
+
+  /** Lista las entries de una operación específica (para mostrar en UI). */
+  listarPorOperacion(
+    tenantId: TenantId,
+    operacionTipo: string,
+    operacionId: string,
+  ): Promise<LedgerEntry[]>;
+}
+
+/**
+ * AuditRepository — append-only.
+ * Se invoca una vez por mutación del sistema (state change de una carga,
+ * creación de tenant, invitación de miembro, etc.).
+ */
+export interface AuditRepository {
+  append(
+    entry: Omit<AuditLog, "id" | "createdAt">,
+  ): Promise<AuditLog>;
+
+  listarPorTenant(
+    tenantId: TenantId,
+    filtros?: {
+      desde?: Date;
+      hasta?: Date;
+      entidadTipo?: string;
+      entidadId?: string;
+      limit?: number;
+    },
+  ): Promise<AuditLog[]>;
 }

@@ -64,6 +64,7 @@ describe("puedeTransicionar", () => {
     ["validating", "validated"],
     ["validating", "rejected"],
     ["validated", "settled"],
+    ["validated", "rejected"],
   ];
 
   it.each(VALIDAS)("permite %s → %s", (from, to) => {
@@ -86,8 +87,6 @@ describe("puedeTransicionar", () => {
     ["rejected", "validating"],
     ["rejected", "validated"],
     ["rejected", "settled"],
-    // Una vez validada, no se puede rechazar (la validación es el filtro)
-    ["validated", "rejected"],
   ];
 
   it.each(INVALIDAS)("rechaza %s → %s", (from, to) => {

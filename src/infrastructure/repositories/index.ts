@@ -3,22 +3,28 @@
  * según env var `DATA_SOURCE`. Default: `mock`.
  *
  * Uso en server components / server actions:
- *   import { repos } from "@/lib/server/repositories";
+ *   import { repos } from "@/lib/server";
  *   const tenants = await repos.tenants.listar();
  *
  * Ver PLAN-TECNICO.md §8 (Repository pattern).
  */
 
 import type {
+  AuditRepository,
+  CargaRepository,
   CasinoCredentialsRepository,
   CbuAccountRepository,
+  LedgerRepository,
   MemberRepository,
   ProfileRepository,
   TenantRepository,
 } from "@/application/ports/repositories";
 import { cargarStoreDesdeDisco, obtenerStore } from "./mock/store";
+import { crearAuditMock } from "./mock/audit.mock";
+import { crearCargasMock } from "./mock/cargas.mock";
 import { crearCbuMock } from "./mock/cbu.mock";
 import { crearCasinoCredsMock } from "./mock/casino-creds.mock";
+import { crearLedgerMock } from "./mock/ledger.mock";
 import { crearMembersMock } from "./mock/members.mock";
 import { crearProfilesMock } from "./mock/profiles.mock";
 import { crearTenantsMock } from "./mock/tenants.mock";
@@ -30,6 +36,10 @@ export interface Repositorios {
   members: MemberRepository;
   cbuAccounts: CbuAccountRepository;
   casinoCredentials: CasinoCredentialsRepository;
+  // Phase 2
+  cargas: CargaRepository;
+  ledger: LedgerRepository;
+  audit: AuditRepository;
 }
 
 let cache: Repositorios | null = null;
@@ -76,6 +86,10 @@ export async function obtenerRepositorios(): Promise<Repositorios> {
     members: crearMembersMock(store),
     cbuAccounts: crearCbuMock(store),
     casinoCredentials: crearCasinoCredsMock(store),
+    // Phase 2
+    cargas: crearCargasMock(store),
+    ledger: crearLedgerMock(store),
+    audit: crearAuditMock(store),
   };
   return cache;
 }

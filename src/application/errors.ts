@@ -55,6 +55,10 @@ export const codigos = {
   // TenantConfig (jsonb validado por Zod)
   TENANT_CONFIG_INVALIDA: "TENANT_CONFIG_INVALIDA",
 
+  // Cargas (entidad)
+  CARGA_NO_ENCONTRADA: "CARGA_NO_ENCONTRADA",
+  CONCURRENCIA: "CONCURRENCIA",
+
   // Input
   INPUT_INVALIDO: "INPUT_INVALIDO",
 } as const;

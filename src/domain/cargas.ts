@@ -42,7 +42,8 @@ export type AccionCarga = (typeof ACCIONES_CARGA)[number];
 export const TRANSICIONES_CARGA: Record<EstadoCarga, readonly EstadoCarga[]> = {
   pending: ["validating", "rejected"],
   validating: ["validated", "rejected"],
-  validated: ["settled"],
+  /** Una carga validada puede asentar (happy path) o rechazarse (operador la descarta). */
+  validated: ["settled", "rejected"],
   settled: [],
   rejected: [],
 };
@@ -159,7 +160,11 @@ function resolverDestino(
     case "validar":
       return estadoActual === "validating" ? "validated" : null;
     case "rechazar":
-      return estadoActual === "pending" || estadoActual === "validating"
+      // pending, validating o validated pueden rechazarse (validated cubre el
+      // caso "operador revisa una carga validada del casino y la descarta").
+      return estadoActual === "pending" ||
+        estadoActual === "validating" ||
+        estadoActual === "validated"
         ? "rejected"
         : null;
     case "asentar":
