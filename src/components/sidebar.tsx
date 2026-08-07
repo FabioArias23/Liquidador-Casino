@@ -1,44 +1,51 @@
-import { auth, repos } from "@/lib/server";
+import {
+  BuildingIcon,
+  TicketIcon,
+} from "lucide-react";
+
 import { listarTenants } from "@/application/tenants/listar-tenants";
+import { auth, repos } from "@/lib/server";
+
+import { SidebarNav, type SidebarSection } from "./sidebar-nav";
 
 export async function Sidebar() {
   const sesion = await auth().obtenerSesion();
   if (!sesion) return null;
 
   const r = await listarTenants(await repos(), sesion.userId);
+  if (!r.ok) return null;
+  const { tenants, esSuperadmin } = r.data;
 
-  const items: { href: string; label: string; emoji: string }[] = [
-    { href: "/", label: "Inicio", emoji: "🏠" },
+  const sections: SidebarSection[] = [
+    {
+      label: "Navegación",
+      items: [{ href: "/", label: "Inicio", icon: BuildingIcon }],
+    },
   ];
 
-  if (r.ok && r.data.esSuperadmin) {
-    items.push({ href: "/superadmin/tenants", label: "Tenants", emoji: "🏢" });
-  }
-
-  if (r.ok && r.data.tenants.length > 0) {
-    for (const t of r.data.tenants) {
-      items.push({
+  if (tenants.length > 0) {
+    sections.push({
+      label: "Operación",
+      items: tenants.map((t) => ({
         href: `/backoffice/${t.slug}`,
         label: t.nombre,
-        emoji: "🎰",
-      });
-    }
+        icon: TicketIcon,
+      })),
+    });
+  }
+
+  if (esSuperadmin) {
+    sections.push({
+      label: "Plataforma",
+      items: [
+        { href: "/superadmin/tenants", label: "Tenants", icon: TicketIcon },
+      ],
+    });
   }
 
   return (
-    <aside className="w-60 shrink-0 border-r bg-card/30">
-      <nav className="flex flex-col gap-1 p-4">
-        {items.map((it) => (
-          <a
-            key={it.href}
-            href={it.href}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
-          >
-            <span>{it.emoji}</span>
-            <span>{it.label}</span>
-          </a>
-        ))}
-      </nav>
+    <aside className="hidden w-60 shrink-0 border-r border-sidebar-border bg-sidebar md:block">
+      <SidebarNav sections={sections} />
     </aside>
   );
 }

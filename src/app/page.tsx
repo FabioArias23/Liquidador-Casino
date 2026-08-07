@@ -1,32 +1,30 @@
 import Link from "next/link";
+import { ArrowRightIcon, BuildingIcon, LogInIcon } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth, repos } from "@/lib/server";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusPill } from "@/components/ui/status-pill";
 import { listarTenants } from "@/application/tenants/listar-tenants";
+import { auth, repos } from "@/lib/server";
 
 export default async function Home() {
   const sesion = await auth().obtenerSesion();
 
   if (!sesion) {
     return (
-      <div className="mx-auto max-w-xl py-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>Bienvenido al Liquidador de Casino</CardTitle>
-            <CardDescription>
-              MOCK: todavía no hay sesión. Elegí un usuario en el header arriba a la derecha
-              para empezar (cualquiera de los 4 perfiles seed).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            <p className="mb-2">
-              Cuando esté listo Supabase real, este paso se reemplaza por un login con email + password + TOTP opcional.
-            </p>
-            <p>
-              El selector está arriba a la derecha, marcado con un candado (🔒).
-            </p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-2xl py-12">
+        <EmptyState
+          icon={LogInIcon}
+          title="Elegí un usuario para empezar"
+          description="El selector arriba a la derecha te permite cambiar entre los perfiles seed del demo (operador, supervisor, tenant admin, superadmin)."
+        />
       </div>
     );
   }
@@ -34,10 +32,10 @@ export default async function Home() {
   const r = await listarTenants(await repos(), sesion.userId);
   if (!r.ok) {
     return (
-      <div className="mx-auto max-w-xl py-12">
+      <div className="mx-auto max-w-2xl py-12">
         <Card>
           <CardHeader>
-            <CardTitle>Error</CardTitle>
+            <CardTitle>Error al cargar tenants</CardTitle>
             <CardDescription>{r.error.mensaje}</CardDescription>
           </CardHeader>
         </Card>
@@ -48,84 +46,85 @@ export default async function Home() {
   const { tenants, esSuperadmin } = r.data;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hola, {sesion.profile.email}</h1>
+    <div className="mx-auto max-w-7xl space-y-8">
+      <header className="space-y-1">
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Hola, {sesion.profile.email.split("@")[0]}
+          </h1>
+          {esSuperadmin && (
+            <StatusPill variant="validating">superadmin</StatusPill>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground">
           {esSuperadmin
-            ? "Sos superadmin: ves todos los tenants."
-            : `Sos miembro de ${tenants.length} tenant${tenants.length === 1 ? "" : "s"}.`}
+            ? `Ves los ${tenants.length} tenant${tenants.length === 1 ? "" : "s"} de la plataforma.`
+            : tenants.length === 0
+              ? "No sos miembro activo de ningún tenant todavía."
+              : `Sos miembro de ${tenants.length} tenant${tenants.length === 1 ? "" : "s"}.`}
         </p>
-      </div>
+      </header>
 
-      {esSuperadmin && (
+      {tenants.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Tenants</span>
-              <Link
-                href="/superadmin/tenants"
-                className="text-sm font-normal text-primary hover:underline"
-              >
-                gestionar →
-              </Link>
-            </CardTitle>
-            <CardDescription>Vista de superadmin. Click en un tenant para entrar al backoffice.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="p-0">
+            <EmptyState
+              icon={BuildingIcon}
+              title="Sin tenants asignados"
+              description="Pedile a un admin de plataforma que te invite a un tenant para empezar a operar."
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              {esSuperadmin ? "Tus tenants" : "Tus accesos"}
+            </h2>
+            {esSuperadmin && (
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/superadmin/tenants">
+                  Gestionar tenants
+                  <ArrowRightIcon className="size-3.5" />
+                </Link>
+              </Button>
+            )}
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {tenants.map((t) => (
               <Link
                 key={t.id}
                 href={`/backoffice/${t.slug}`}
-                className="flex items-center justify-between rounded-md border px-4 py-3 transition-colors hover:bg-accent"
+                data-slot="tenant-card"
+                className="group/tenant-card flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-sunken"
               >
-                <div>
-                  <div className="font-medium">{t.nombre}</div>
-                  <div className="text-xs text-muted-foreground">/{t.slug}</div>
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-md bg-primary/8 text-primary">
+                    <BuildingIcon className="size-4" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <div className="font-medium">{t.nombre}</div>
+                    <div className="font-mono text-xs text-muted-foreground">
+                      /{t.slug}
+                    </div>
+                  </div>
                 </div>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
-                    t.estado === "activo"
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                      : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                  }`}
-                >
-                  {t.estado}
-                </span>
+                <div className="flex items-center gap-2">
+                  <StatusPill
+                    variant={t.estado === "activo" ? "validated" : "settled"}
+                  >
+                    {t.estado}
+                  </StatusPill>
+                  <ArrowRightIcon
+                    strokeWidth={1.75}
+                    className="size-4 text-muted-foreground transition-transform group-hover/tenant-card:translate-x-0.5"
+                  />
+                </div>
               </Link>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
-
-      {!esSuperadmin && tenants.length === 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sin tenants asignados</CardTitle>
-            <CardDescription>
-              No sos miembro activo de ningún tenant todavía. Pedile a un admin que te invite.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      {!esSuperadmin &&
-        tenants.map((t) => (
-          <Card key={t.id}>
-            <CardHeader>
-              <CardTitle>{t.nombre}</CardTitle>
-              <CardDescription>/{t.slug}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link
-                href={`/backoffice/${t.slug}`}
-                className="text-sm text-primary hover:underline"
-              >
-                Entrar al backoffice →
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
     </div>
   );
 }

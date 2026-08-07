@@ -12,8 +12,7 @@ export async function Header() {
     auth().listarPerfilesParaSelector(),
   ]);
 
-  // perfiles viene tipado por Profile (con UserId brand), pero el client component
-  // espera strings. Hacemos el cast explícito acá (única capa de serialización).
+  // Cast único de serialización: Profile (con UserId brand) → string para el client component.
   const perfilesLite = perfiles.map((p) => ({
     id: p.id as unknown as string,
     email: p.email,
@@ -21,21 +20,31 @@ export async function Header() {
   }));
 
   return (
-    <header className="border-b bg-card">
+    <header className="h-14 shrink-0 border-b border-border bg-background">
       <div className="flex h-14 items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <Building2Icon className="size-5 text-primary" />
-          <span className="font-semibold tracking-tight">Liquidador de Casino</span>
-          <Separator orientation="vertical" className="mx-3 h-5" />
-          <span className="text-xs text-muted-foreground">multi-tenant · mock-first</span>
+        <div className="flex items-center gap-2.5">
+          <Building2Icon className="size-4 text-primary" strokeWidth={2} />
+          <span className="text-sm font-semibold tracking-tight">
+            Liquidador de Casino
+          </span>
+          <Separator
+            orientation="vertical"
+            className="mx-2 h-4"
+          />
+          <span className="text-xs text-muted-foreground">
+            Multi-tenant · liquidación diaria
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <SelectorUsuario perfiles={perfilesLite} activoId={sesion?.userId as unknown as string ?? null} />
+          <SelectorUsuario
+            perfiles={perfilesLite}
+            activoId={sesion?.userId as unknown as string ?? null}
+          />
           {sesion && (
             <form action={accionCerrarSesion}>
               <Button type="submit" variant="ghost" size="sm">
-                Salir
+                Cerrar sesión
               </Button>
             </form>
           )}

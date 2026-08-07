@@ -4,10 +4,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/**
+ * Design tokens per DESIGN.md.
+ * - Banking Teal accent (verde-azulado profundo) sobre neutros cálidos
+ * - Semáforo fijo de 5 estados de operación (pending/validating/validated/settled/rejected)
+ * - Warm neutrals (cero grises puros)
+ * - Flat by default; shadows solo para focus/drag/modal
+ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -39,7 +47,28 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
+
+  /* Semáforo de operación (status pills + badges) */
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-pending-fg: var(--status-pending-fg);
+  --color-status-validating: var(--status-validating);
+  --color-status-validating-bg: var(--status-validating-bg);
+  --color-status-validating-fg: var(--status-validating-fg);
+  --color-status-validated: var(--status-validated);
+  --color-status-validated-bg: var(--status-validated-bg);
+  --color-status-validated-fg: var(--status-validated-fg);
+  --color-status-settled: var(--status-settled);
+  --color-status-settled-bg: var(--status-settled-bg);
+  --color-status-settled-fg: var(--status-settled-fg);
+  --color-status-rejected: var(--status-rejected);
+  --color-status-rejected-bg: var(--status-rejected-bg);
+  --color-status-rejected-fg: var(--status-rejected-fg);
+
+  /* Tonal layers (paper/surface/sunken) */
+  --color-sunken: var(--sunken);
+
+  --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
@@ -49,72 +78,127 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Warm neutrals (paper surface, sin grises puros) */
+  --background: oklch(0.985 0.005 80);
+  --foreground: oklch(0.18 0.008 80);
+  --card: oklch(0.97 0.005 80);
+  --card-foreground: oklch(0.18 0.008 80);
+  --popover: oklch(0.97 0.005 80);
+  --popover-foreground: oklch(0.18 0.008 80);
+
+  /* Banking Teal (acento principal) */
+  --primary: oklch(0.45 0.12 195);
+  --primary-foreground: oklch(0.985 0.005 80);
+
+  --secondary: oklch(0.94 0.006 80);
+  --secondary-foreground: oklch(0.18 0.008 80);
+  --muted: oklch(0.94 0.006 80);
+  --muted-foreground: oklch(0.45 0.008 80);
+  --accent: oklch(0.94 0.006 80);
+  --accent-foreground: oklch(0.18 0.008 80);
+
+  /* Tonal layer (filas hover, inputs disabled, skeletons) */
+  --sunken: oklch(0.94 0.006 80);
+
+  /* Destructive = acciones destructivas (no estados). Más saturado que status-rejected. */
+  --destructive: oklch(0.55 0.22 27);
+
+  --border: oklch(0.90 0.008 80);
+  --input: oklch(0.90 0.008 80);
+  --ring: oklch(0.45 0.12 195);
+
+  /* Charts (reservados para Phase 4 dashboard) */
+  --chart-1: oklch(0.45 0.12 195);
+  --chart-2: oklch(0.62 0.16 155);
+  --chart-3: oklch(0.65 0.14 235);
+  --chart-4: oklch(0.78 0.16 75);
+  --chart-5: oklch(0.60 0.20 25);
+
+  /* Semáforo: pending (amber) */
+  --status-pending: oklch(0.78 0.16 75);
+  --status-pending-bg: oklch(0.96 0.06 75);
+  --status-pending-fg: oklch(0.40 0.14 75);
+  /* Semáforo: validating (sky) */
+  --status-validating: oklch(0.65 0.14 235);
+  --status-validating-bg: oklch(0.96 0.05 235);
+  --status-validating-fg: oklch(0.38 0.13 235);
+  /* Semáforo: validated (emerald) */
+  --status-validated: oklch(0.62 0.16 155);
+  --status-validated-bg: oklch(0.96 0.05 155);
+  --status-validated-fg: oklch(0.36 0.13 155);
+  /* Semáforo: settled (slate) */
+  --status-settled: oklch(0.45 0.04 235);
+  --status-settled-bg: oklch(0.95 0.01 235);
+  --status-settled-fg: oklch(0.30 0.04 235);
+  /* Semáforo: rejected (rose) */
+  --status-rejected: oklch(0.60 0.20 25);
+  --status-rejected-bg: oklch(0.96 0.05 25);
+  --status-rejected-fg: oklch(0.42 0.18 25);
+
+  --radius: 0.5rem;
+
+  --sidebar: oklch(0.97 0.005 80);
+  --sidebar-foreground: oklch(0.18 0.008 80);
+  --sidebar-primary: oklch(0.45 0.12 195);
+  --sidebar-primary-foreground: oklch(0.985 0.005 80);
+  --sidebar-accent: oklch(0.94 0.006 80);
+  --sidebar-accent-foreground: oklch(0.18 0.008 80);
+  --sidebar-border: oklch(0.90 0.008 80);
+  --sidebar-ring: oklch(0.45 0.12 195);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.16 0.008 80);
+  --foreground: oklch(0.96 0.005 80);
+  --card: oklch(0.20 0.008 80);
+  --card-foreground: oklch(0.96 0.005 80);
+  --popover: oklch(0.20 0.008 80);
+  --popover-foreground: oklch(0.96 0.005 80);
+  --primary: oklch(0.62 0.14 195);
+  --primary-foreground: oklch(0.16 0.008 80);
+  --secondary: oklch(0.26 0.008 80);
+  --secondary-foreground: oklch(0.96 0.005 80);
+  --muted: oklch(0.26 0.008 80);
+  --muted-foreground: oklch(0.70 0.008 80);
+  --accent: oklch(0.26 0.008 80);
+  --accent-foreground: oklch(0.96 0.005 80);
+  --sunken: oklch(0.22 0.008 80);
+  --destructive: oklch(0.65 0.22 27);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.62 0.14 195);
+
+  --chart-1: oklch(0.62 0.14 195);
+  --chart-2: oklch(0.70 0.16 155);
+  --chart-3: oklch(0.72 0.14 235);
+  --chart-4: oklch(0.80 0.16 75);
+  --chart-5: oklch(0.68 0.20 25);
+
+  /* Semáforo en dark: bg más oscuro, fg más luminoso */
+  --status-pending: oklch(0.80 0.16 75);
+  --status-pending-bg: oklch(0.30 0.06 75);
+  --status-pending-fg: oklch(0.85 0.14 75);
+  --status-validating: oklch(0.72 0.14 235);
+  --status-validating-bg: oklch(0.28 0.05 235);
+  --status-validating-fg: oklch(0.82 0.13 235);
+  --status-validated: oklch(0.72 0.16 155);
+  --status-validated-bg: oklch(0.28 0.05 155);
+  --status-validated-fg: oklch(0.82 0.13 155);
+  --status-settled: oklch(0.62 0.04 235);
+  --status-settled-bg: oklch(0.26 0.01 235);
+  --status-settled-fg: oklch(0.75 0.04 235);
+  --status-rejected: oklch(0.68 0.20 25);
+  --status-rejected-bg: oklch(0.30 0.05 25);
+  --status-rejected-fg: oklch(0.82 0.18 25);
+
+  --sidebar: oklch(0.18 0.008 80);
+  --sidebar-foreground: oklch(0.96 0.005 80);
+  --sidebar-primary: oklch(0.62 0.14 195);
+  --sidebar-primary-foreground: oklch(0.16 0.008 80);
+  --sidebar-accent: oklch(0.26 0.008 80);
+  --sidebar-accent-foreground: oklch(0.96 0.005 80);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.62 0.14 195);
 }
 
 @layer base {
@@ -126,5 +210,12 @@
   }
   html {
     @apply font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  /* Tabular nums por defecto en mono (alineación decimal) */
+  .font-mono,
+  code,
+  kbd {
+    font-variant-numeric: tabular-nums;
   }
 }
