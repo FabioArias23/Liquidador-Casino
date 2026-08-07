@@ -17,6 +17,7 @@ import type {
   LedgerRepository,
   MemberRepository,
   ProfileRepository,
+  RetiroRepository,
   TenantRepository,
 } from "@/application/ports/repositories";
 import { cargarStoreDesdeDisco, obtenerStore } from "./mock/store";
@@ -27,6 +28,7 @@ import { crearCasinoCredsMock } from "./mock/casino-creds.mock";
 import { crearLedgerMock } from "./mock/ledger.mock";
 import { crearMembersMock } from "./mock/members.mock";
 import { crearProfilesMock } from "./mock/profiles.mock";
+import { crearRetirosMock } from "./mock/retiros.mock";
 import { crearTenantsMock } from "./mock/tenants.mock";
 import { seedDemo } from "./mock/seed";
 
@@ -40,6 +42,8 @@ export interface Repositorios {
   cargas: CargaRepository;
   ledger: LedgerRepository;
   audit: AuditRepository;
+  // Phase 3
+  retiros: RetiroRepository;
 }
 
 let cache: Repositorios | null = null;
@@ -90,6 +94,8 @@ export async function obtenerRepositorios(): Promise<Repositorios> {
     cargas: crearCargasMock(store),
     ledger: crearLedgerMock(store),
     audit: crearAuditMock(store),
+    // Phase 3
+    retiros: crearRetirosMock(store),
   };
   return cache;
 }

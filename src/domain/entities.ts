@@ -71,6 +71,45 @@ export interface CasinoCredentials {
   updatedAt: Date;
 }
 
+// ─── Phase 3: Retiros + Pagos ────────────────────────────────────────────────
+
+/**
+ * Retiro — el movimiento de plata que sale del sistema (pago a jugador).
+ * El campo `estado` recorre una state machine pura (ver domain/retiros.ts).
+ *
+ * Cuatro-ojos (validación cruzada por código Y por BD):
+ * - `validadaPor` y `aprobadaPor` deben ser UserIds distintos.
+ * - `aprobadaPor` y `pagadaPor` deben ser UserIds distintos.
+ * El CHECK vive en BD; el código de aplicación también lo valida en cada
+ * transición (defensa en profundidad).
+ */
+export interface Retiro {
+  id: string;
+  tenantId: TenantId;
+  playerRef: string;
+  montoCents: number;
+  moneda: string;
+  cbuDestino: string;
+  aliasDestino: string | null;
+  titularDestino: string;
+  estado: import("./retiros").EstadoRetiro;
+  origen: "manual" | "api_casino";
+  externalRef: string | null;
+  comprobanteUrl: string | null;
+  motivoRechazo: string | null;
+
+  registradaPor: UserId;
+  validadaPor: UserId | null;
+  rechazadaPor: UserId | null;
+  aprobadaPor: UserId | null;
+  rechazadaAprobacionPor: UserId | null;
+  pagadaPor: UserId | null;
+
+  version: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ─── Phase 2: Cargas + Ledger + Audit + TenantConfig ────────────────────────
 
 /**

@@ -59,6 +59,9 @@ export const codigos = {
   CARGA_NO_ENCONTRADA: "CARGA_NO_ENCONTRADA",
   CONCURRENCIA: "CONCURRENCIA",
 
+  // Retiros (entidad)
+  RETIRO_NO_ENCONTRADO: "RETIRO_NO_ENCONTRADO",
+
   // Input
   INPUT_INVALIDO: "INPUT_INVALIDO",
 } as const;

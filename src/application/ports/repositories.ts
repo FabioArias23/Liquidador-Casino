@@ -18,6 +18,7 @@ import type {
   LedgerEntry,
   Member,
   Profile,
+  Retiro,
   Tenant,
 } from "@/domain/entities";
 import type {
@@ -28,6 +29,7 @@ import type {
   UserId,
 } from "@/domain/ids";
 import type { EstadoCarga } from "@/domain/cargas";
+import type { EstadoRetiro } from "@/domain/retiros";
 import type { ErrorNegocio, Result } from "@/domain/result";
 import type { Rol } from "@/domain/roles";
 
@@ -207,4 +209,39 @@ export interface AuditRepository {
       limit?: number;
     },
   ): Promise<AuditLog[]>;
+}
+
+// ─── Phase 3: Retiros ────────────────────────────────────────────────────────
+
+/** Filtros opcionales para listar retiros de un tenant. */
+export interface ListarRetirosFiltros {
+  estado?: EstadoRetiro;
+  desde?: Date;
+  hasta?: Date;
+  playerRef?: string;
+  limit?: number;
+}
+
+export interface RetiroRepository {
+  /** Inserta un retiro nuevo (estado inicial: pending). */
+  crear(retiro: Retiro): Promise<Retiro>;
+
+  /** Obtiene por ID dentro de un tenant (no cross-tenant). */
+  obtenerPorId(tenantId: TenantId, id: string): Promise<Retiro | null>;
+
+  /** Lista retiros de un tenant, ordenados por created_at desc. */
+  listarPorTenant(
+    tenantId: TenantId,
+    filtros?: ListarRetirosFiltros,
+  ): Promise<Retiro[]>;
+
+  /**
+   * Update atómico con optimistic lock.
+   * Si la versión del storage difiere de `expectedVersion`, falla con
+   * `CONCURRENCIA` (otro operador ya actualizó el retiro).
+   */
+  actualizar(
+    retiro: Retiro,
+    expectedVersion: number,
+  ): Promise<Result<Retiro, ErrorNegocio>>;
 }

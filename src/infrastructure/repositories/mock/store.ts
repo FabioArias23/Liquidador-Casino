@@ -19,6 +19,7 @@ import type {
   LedgerEntry,
   Member,
   Profile,
+  Retiro,
   Tenant,
 } from "@/domain/entities";
 import type {
@@ -42,6 +43,8 @@ interface Snapshot {
   cargas: Record<string, Carga>;
   ledgerEntries: Record<string, LedgerEntry>;
   auditLog: Record<string, AuditLog>;
+  // Phase 3
+  retiros: Record<string, Retiro>;
 }
 
 export class MockStore {
@@ -59,6 +62,9 @@ export class MockStore {
   ledgerEntries = new Map<LedgerEntryId, LedgerEntry>();
   auditLog = new Map<AuditLogId, AuditLog>();
 
+  // Phase 3
+  retiros = new Map<string, Retiro>();
+
   reset(): void {
     this.tenants.clear();
     this.profiles.clear();
@@ -69,6 +75,7 @@ export class MockStore {
     this.cargas.clear();
     this.ledgerEntries.clear();
     this.auditLog.clear();
+    this.retiros.clear();
   }
 
   toSnapshot(): Snapshot {
@@ -81,13 +88,14 @@ export class MockStore {
       cargas: Object.fromEntries(this.cargas),
       ledgerEntries: Object.fromEntries(this.ledgerEntries),
       auditLog: Object.fromEntries(this.auditLog),
+      retiros: Object.fromEntries(this.retiros),
     };
   }
 
   loadSnapshot(snap: Snapshot): void {
     this.reset();
-    // Defensivo: snapshots viejos (de antes de Phase 2) no tienen las keys
-    // nuevas. Las tratamos como {} para que la migración sea silenciosa.
+    // Defensivo: snapshots viejos no tienen las keys nuevas.
+    // Las tratamos como {} para que la migración sea silenciosa.
     const safe = <K extends keyof Snapshot>(k: K): Record<string, Snapshot[K] extends Record<string, infer V> | undefined ? V : never> => {
       const v = snap[k] as unknown;
       return (v && typeof v === "object" ? v : {}) as never;
@@ -112,6 +120,9 @@ export class MockStore {
       this.ledgerEntries.set(k as LedgerEntryId, v as LedgerEntry);
     for (const [k, v] of Object.entries(safe("auditLog")))
       this.auditLog.set(k as AuditLogId, v as AuditLog);
+    // Phase 3
+    for (const [k, v] of Object.entries(safe("retiros")))
+      this.retiros.set(k, v as Retiro);
   }
 }
 

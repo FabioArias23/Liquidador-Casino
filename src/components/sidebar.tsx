@@ -1,12 +1,3 @@
-import {
-  BuildingIcon,
-  HistoryIcon,
-  LandmarkIcon,
-  PlugIcon,
-  TicketIcon,
-  UsersIcon,
-} from "lucide-react";
-
 import { listarTenants } from "@/application/tenants/listar-tenants";
 import { auth, repos } from "@/lib/server";
 
