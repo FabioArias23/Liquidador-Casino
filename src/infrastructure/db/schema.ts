@@ -35,6 +35,9 @@ export const profiles = pgTable("profiles", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const tenants = pgTable(
@@ -78,6 +81,9 @@ export const tenantMembers = pgTable(
     rol: text("rol").notNull(),
     estado: text("estado").notNull().default("activo"),
     createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },

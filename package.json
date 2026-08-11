@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "db:generate": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs generate",
     "db:push": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs push --force",
+    "db:seed": "node --env-file=.env.local --import tsx scripts/seed-supabase.mts",
     "smoke": "tsx scripts/smoke-test.ts",
     "test:webhook": "tsx scripts/test-webhook.ts",
     "test:notifications": "tsx scripts/test-notifications.ts",
