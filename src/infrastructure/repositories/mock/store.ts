@@ -101,28 +101,28 @@ export class MockStore {
       return (v && typeof v === "object" ? v : {}) as never;
     };
     for (const [k, v] of Object.entries(safe("tenants")))
-      this.tenants.set(k as TenantId, v as Tenant);
+      this.tenants.set(k as TenantId, hidratarTenant(v));
     for (const [k, v] of Object.entries(safe("profiles"))) {
-      const profile = v as Profile;
+      const profile = hidratarProfile(v);
       this.profiles.set(k as UserId, profile);
       this.emails.set(profile.email.toLowerCase(), profile.id);
     }
     for (const [k, v] of Object.entries(safe("members")))
-      this.members.set(k as MemberId, v as Member);
+      this.members.set(k as MemberId, hidratarMember(v));
     for (const [k, v] of Object.entries(safe("cbuAccounts")))
-      this.cbuAccounts.set(k as CbuAccountId, v as CbuAccount);
+      this.cbuAccounts.set(k as CbuAccountId, hidratarCbuAccount(v));
     for (const [k, v] of Object.entries(safe("casinoCredentials")))
-      this.casinoCredentials.set(k as CasinoCredentialsId, v as CasinoCredentials);
+      this.casinoCredentials.set(k as CasinoCredentialsId, hidratarCasinoCredentials(v));
     // Phase 2 — defaults a {} si el snapshot es viejo
     for (const [k, v] of Object.entries(safe("cargas")))
-      this.cargas.set(k as CargaId, v as Carga);
+      this.cargas.set(k as CargaId, hidratarCarga(v));
     for (const [k, v] of Object.entries(safe("ledgerEntries")))
-      this.ledgerEntries.set(k as LedgerEntryId, v as LedgerEntry);
+      this.ledgerEntries.set(k as LedgerEntryId, hidratarLedgerEntry(v));
     for (const [k, v] of Object.entries(safe("auditLog")))
-      this.auditLog.set(k as AuditLogId, v as AuditLog);
+      this.auditLog.set(k as AuditLogId, hidratarAuditLog(v));
     // Phase 3
     for (const [k, v] of Object.entries(safe("retiros")))
-      this.retiros.set(k, v as Retiro);
+      this.retiros.set(k, hidratarRetiro(v));
   }
 }
 
@@ -159,4 +159,66 @@ export async function persistirStore(store: MockStore): Promise<void> {
     JSON.stringify(store.toSnapshot(), null, 2),
     "utf-8",
   );
+}
+
+// ── Hidratación de fechas ────────────────────────────────────────────────────
+// JSON.stringify(Date) → ISO string. Al leer el snapshot de vuelta, las fechas
+// vienen como string. Esta capa las re-hidrata a Date para mantener el
+// contrato del dominio. Sin esto, el código que llama .getTime() o
+// formatRelativeTime(date) explota en runtime.
+
+/** Convierte string|Date|undefined → Date. Si ya es Date, lo devuelve igual. */
+function toDate(v: unknown): Date {
+  if (v instanceof Date) return v;
+  if (typeof v === "string" || typeof v === "number") return new Date(v);
+  throw new Error(`No se pudo hidratar fecha: ${String(v)}`);
+}
+
+function hidratarTenant(raw: unknown): Tenant {
+  const t = raw as Tenant;
+  return { ...t, createdAt: toDate(t.createdAt), updatedAt: toDate(t.updatedAt) };
+}
+
+function hidratarProfile(raw: unknown): Profile {
+  const p = raw as Profile;
+  return { ...p, createdAt: toDate(p.createdAt) };
+}
+
+function hidratarMember(raw: unknown): Member {
+  const m = raw as Member;
+  return { ...m, createdAt: toDate(m.createdAt) };
+}
+
+function hidratarCbuAccount(raw: unknown): CbuAccount {
+  const c = raw as CbuAccount;
+  return { ...c, createdAt: toDate(c.createdAt), updatedAt: toDate(c.updatedAt) };
+}
+
+function hidratarCasinoCredentials(raw: unknown): CasinoCredentials {
+  const c = raw as CasinoCredentials;
+  return { ...c, createdAt: toDate(c.createdAt), updatedAt: toDate(c.updatedAt) };
+}
+
+function hidratarCarga(raw: unknown): Carga {
+  const c = raw as Carga;
+  return { ...c, createdAt: toDate(c.createdAt), updatedAt: toDate(c.updatedAt) };
+}
+
+function hidratarLedgerEntry(raw: unknown): LedgerEntry {
+  const e = raw as LedgerEntry;
+  return { ...e, createdAt: toDate(e.createdAt) };
+}
+
+function hidratarAuditLog(raw: unknown): AuditLog {
+  const a = raw as AuditLog;
+  return { ...a, createdAt: toDate(a.createdAt) };
+}
+
+function hidratarRetiro(raw: unknown): Retiro {
+  const r = raw as Retiro;
+  return {
+    ...r,
+    createdAt: toDate(r.createdAt),
+    updatedAt: toDate(r.updatedAt),
+  };
 }
