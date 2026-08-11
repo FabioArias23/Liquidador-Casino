@@ -207,7 +207,9 @@ export function seedBase(store: MockStore): void {
       adapterType: "configurable_http",
       baseUrl: "https://api.casino-demo.example.com",
       apiKeyCiphertext: null,
-      webhookSecret: null,
+      // Secret de dev hardcoded para probar el webhook receiver localmente.
+      // En prod se setea via UI en /backoffice/[slug]/casino o por env.
+      webhookSecret: "dev-webhook-secret-32chars-min-aaaa",
       createdAt: t0,
       updatedAt: t0,
     },
