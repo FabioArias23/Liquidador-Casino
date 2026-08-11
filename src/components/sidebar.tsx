@@ -60,6 +60,11 @@ export async function Sidebar() {
           iconKey: "ticket" as const,
         },
         {
+          href: `/backoffice/${activeTenant.slug}/retiros`,
+          label: "Retiros",
+          iconKey: "banknote" as const,
+        },
+        {
           href: `/backoffice/${activeTenant.slug}/historial`,
           label: "Historial",
           iconKey: "history" as const,

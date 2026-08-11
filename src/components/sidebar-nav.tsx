@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BanknoteIcon,
   BuildingIcon,
   HistoryIcon,
   LandmarkIcon,
@@ -26,7 +27,8 @@ export type SidebarIconKey =
   | "history"
   | "users"
   | "bank"
-  | "plug";
+  | "plug"
+  | "banknote";
 
 const ICON_MAP: Record<SidebarIconKey, LucideIcon> = {
   building: BuildingIcon,
@@ -35,6 +37,7 @@ const ICON_MAP: Record<SidebarIconKey, LucideIcon> = {
   users: UsersIcon,
   bank: LandmarkIcon,
   plug: PlugIcon,
+  banknote: BanknoteIcon,
 };
 
 export interface SidebarItem {

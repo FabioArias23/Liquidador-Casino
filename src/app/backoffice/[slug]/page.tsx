@@ -100,6 +100,7 @@ export default async function BackofficePage({
         <KpiCard
           label="Retiros pendientes"
           value={retirosPendientes.toString()}
+          href={`/backoffice/${tenant.slug}/retiros`}
         />
         <KpiCard
           label="Pagos del día"
@@ -112,13 +113,20 @@ export default async function BackofficePage({
         <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
           Operación
         </h2>
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-3">
           <ModuloCard
             href={`/backoffice/${tenant.slug}/cargas`}
             icon={TicketIcon}
             titulo="Cargas"
             descripcion="Depósitos de jugadores. Pendientes, validadas, asentadas y rechazadas."
             badge={cargas.filter((c) => c.estado === "pending").toString()}
+          />
+          <ModuloCard
+            href={`/backoffice/${tenant.slug}/retiros`}
+            icon={BanknoteIcon}
+            titulo="Retiros"
+            descripcion="Pagos a jugadores. Validación, aprobación y ejecución con cuatro-ojos."
+            badge={retirosPendientes.toString()}
           />
           <ModuloCard
             href={`/backoffice/${tenant.slug}/historial`}
