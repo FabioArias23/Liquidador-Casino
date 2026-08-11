@@ -14,7 +14,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "smoke": "tsx scripts/smoke-test.ts",
-    "mock:reset": "node -e \"require('node:fs').rmSync('.data/mock.json', { force: true }); console.log('🧹 mock borrado')\""
+    "test:webhook": "tsx scripts/test-webhook.ts",
+    "check-env": "node --env-file=.env.local scripts/check-env.mjs",
+    "mock:reset": "node -e \"require('node:fs').rmSync('.data/mock.json', { force: true }); console.log('mock borrado')\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",

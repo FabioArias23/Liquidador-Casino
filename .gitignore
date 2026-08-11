@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# NOTA de seguridad: .env.example TAMBIEN se ignora. Despues del incidente
+# donde casi commiteamos un SUPABASE_SECRET_KEY en este archivo, decidimos
+# ignorar hasta el archivo de referencia. Para saber que variables necesita
+# el proyecto, ver docs/env-vars.md (o pedir al maintainer). Si necesitas
+# agregar una var nueva, edita localmente + actualiza docs/env-vars.md.
+.env.example
 
 # mock data persistence (local only)
 /.data/
