@@ -88,7 +88,7 @@ npm install
 | Comando              | Para qué sirve                                              |
 | -------------------- | ----------------------------------------------------------- |
 | `npm run dev`        | Levanta el server en `localhost:3000` con hot reload       |
-| `npm test`           | Corre los 178 tests con Vitest (modo single-run)            |
+| `npm test`           | Corre los 190 tests con Vitest (modo single-run)            |
 | `npm run test:watch` | Vitest en modo watch (re-corre al guardar)                 |
 | `npm run lint`       | ESLint (config de Next 16)                                  |
 | `npm run typecheck`  | TypeScript sin emit (chequea tipos sin compilar)            |
@@ -204,7 +204,7 @@ npm run mock:reset
 npm test
 ```
 
-Cobertura actual (178 tests):
+Cobertura actual (190 tests):
 
 - Domain state machines (cargas, retiros)
 - Use cases de Cargas (registrar, validar, rechazar, asentar, listar)
@@ -232,3 +232,6 @@ Cobertura actual (178 tests):
 - `DESIGN.md` — sistema visual (tokens, paleta, semáforo, do's & don'ts)
 - `PLAN-TECNICO.md` — decisiones de arquitectura fuente
 - `AGENTS.md` — reglas operativas para AI agents que trabajen en el repo
+- [`docs/demo-runbook.md`](docs/demo-runbook.md) — paso a paso de los 4
+  escenarios de la demo (idempotencia, cuatro-ojos, rechazo, cierre diario).
+  Pensado para que el operador del casino pueda ejecutarlo solo en ~20 min.
