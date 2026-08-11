@@ -9,6 +9,7 @@ export interface ListarAuditFiltros {
   hasta?: Date;
   entidadTipo?: string;
   entidadId?: string;
+  actorId?: string;
   limit?: number;
 }
 
@@ -42,6 +43,8 @@ function filtrar(logs: AuditLog[], filtros?: ListarAuditFiltros): AuditLog[] {
     out = out.filter((l) => l.entidadTipo === filtros.entidadTipo);
   if (filtros.entidadId)
     out = out.filter((l) => l.entidadId === filtros.entidadId);
+  if (filtros.actorId)
+    out = out.filter((l) => l.actorId === filtros.actorId);
   if (filtros.limit) out = out.slice(0, filtros.limit);
   return out;
 }

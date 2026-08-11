@@ -206,6 +206,7 @@ export interface AuditRepository {
       hasta?: Date;
       entidadTipo?: string;
       entidadId?: string;
+      actorId?: string;
       limit?: number;
     },
   ): Promise<AuditLog[]>;

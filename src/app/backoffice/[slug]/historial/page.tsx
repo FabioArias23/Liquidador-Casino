@@ -10,6 +10,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{
     entidadTipo?: string;
+    actorId?: string;
     desde?: string;
     hasta?: string;
   }>;
@@ -35,6 +36,7 @@ export default async function HistorialPage({ params, searchParams }: PageProps)
   if (sp.entidadTipo && TIPOS_ENTIDAD.includes(sp.entidadTipo)) {
     filtros.entidadTipo = sp.entidadTipo;
   }
+  if (sp.actorId) filtros.actorId = sp.actorId;
   if (sp.desde) {
     const d = new Date(sp.desde);
     if (!isNaN(d.getTime())) filtros.desde = d;
@@ -44,6 +46,18 @@ export default async function HistorialPage({ params, searchParams }: PageProps)
     if (!isNaN(d.getTime())) filtros.hasta = d;
   }
   filtros.limit = 200;
+
+  // Hidratamos emails de TODOS los miembros del tenant (para que el selector
+  // de actor pueda listar todos los operadores/supervisores/admins).
+  const miembros = await r.members.listarPorTenant(tenant.id);
+  const profileIds = new Set(miembros.map((m) => m.userId));
+  const todosLosPerfiles = await Promise.all(
+    [...profileIds].map((id) => r.profiles.obtenerPorId(id)),
+  );
+  const todosLosActores = todosLosPerfiles
+    .filter((p): p is NonNullable<typeof p> => p !== null)
+    .map((p) => ({ id: p.id, email: p.email }))
+    .sort((a, b) => a.email.localeCompare(b.email));
 
   const audits = await listarAuditLog(r, tenant.id, filtros);
 
@@ -67,9 +81,11 @@ export default async function HistorialPage({ params, searchParams }: PageProps)
       <FiltrosLinea
         slug={slug}
         entidadTipoActual={sp.entidadTipo ?? ""}
+        actorIdActual={sp.actorId ?? ""}
         desdeActual={sp.desde ?? ""}
         hastaActual={sp.hasta ?? ""}
         cantidad={audits.length}
+        actores={todosLosActores}
       />
 
       {audits.length === 0 ? (
@@ -116,9 +132,13 @@ export default async function HistorialPage({ params, searchParams }: PageProps)
                     {a.motivo ?? "—"}
                   </td>
                   <td className="px-3 py-2">
-                    {a.entidadTipo === "carga" && (
+                    {(a.entidadTipo === "carga" || a.entidadTipo === "retiro") && (
                       <Link
-                        href={`/backoffice/${slug}/cargas/${a.entidadId}`}
+                        href={
+                          a.entidadTipo === "carga"
+                            ? `/backoffice/${slug}/cargas/${a.entidadId}`
+                            : `/backoffice/${slug}/retiros/${a.entidadId}`
+                        }
                         className="text-muted-foreground hover:text-foreground"
                         aria-label="Ver detalle"
                       >
@@ -139,15 +159,19 @@ export default async function HistorialPage({ params, searchParams }: PageProps)
 function FiltrosLinea({
   slug,
   entidadTipoActual,
+  actorIdActual,
   desdeActual,
   hastaActual,
   cantidad,
+  actores,
 }: {
   slug: string;
   entidadTipoActual: string;
+  actorIdActual: string;
   desdeActual: string;
   hastaActual: string;
   cantidad: number;
+  actores: { id: string; email: string }[];
 }) {
   return (
     <form
@@ -169,6 +193,18 @@ function FiltrosLinea({
           </option>
         ))}
       </select>
+      <select
+        name="actorId"
+        defaultValue={actorIdActual}
+        className="h-8 max-w-[220px] rounded-md border border-border bg-background px-2 text-sm"
+      >
+        <option value="">Todos los actores</option>
+        {actores.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.email}
+          </option>
+        ))}
+      </select>
       <input
         type="date"
         name="desde"
@@ -187,7 +223,7 @@ function FiltrosLinea({
       >
         Aplicar
       </button>
-      {(entidadTipoActual || desdeActual || hastaActual) && (
+      {(entidadTipoActual || actorIdActual || desdeActual || hastaActual) && (
         <Link
           href={`/backoffice/${slug}/historial`}
           className="h-8 rounded-md px-3 text-sm font-medium text-muted-foreground hover:text-foreground"

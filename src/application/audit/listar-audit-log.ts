@@ -14,6 +14,7 @@ export interface ListarAuditLogFiltros {
   hasta?: Date;
   entidadTipo?: string;
   entidadId?: string;
+  actorId?: string;
   limit?: number;
 }
 
