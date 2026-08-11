@@ -7,7 +7,14 @@
  * El adapter NO lee tenant_configs directamente — recibe la config por
  * parámetro. Eso lo hace testeable y reusable (un mismo adapter sirve para
  * N tenants con N configs distintas).
+ *
+ * Notificaciones salientes (Phase 4): cuando validamos una carga o pagamos
+ * un retiro, el adapter POSTea al casino con HMAC firmado + timestamp + nonce
+ * (mismo formato que el webhook receiver). Si el casino no responde, la
+ * operacion interna sigue OK — solo logueamos warning.
  */
+
+import { randomUUID } from "node:crypto";
 
 import type {
   CasinoAdapter,
@@ -15,6 +22,7 @@ import type {
   RetiroExterno,
 } from "@/application/ports/casino";
 import type { TenantConfigValidado } from "@/domain/schemas/tenant-config";
+import { calcularFirma } from "@/lib/hmac";
 
 export interface FetchCargasOptions {
   desde?: Date;
@@ -150,14 +158,80 @@ export function crearConfigurableHttpAdapter(): CasinoAdapter {
       return r.ok ? r.cargas : [];
     },
     async fetchRetiros(_tid): Promise<RetiroExterno[]> {
-      // Phase 3.
+      // Phase 4 (futuro): traer retiros pendientes del casino.
       return [];
     },
-    async notificarCargaAcreditada() {
-      /* Phase 5 */
+    notificarCargaAcreditada(tid, externalRef) {
+      return notificarCasino(tid, "carga-acreditada", {
+        externalRef,
+        estado: "validated",
+      });
     },
-    async notificarPagoRealizado() {
-      /* Phase 3 */
+    notificarPagoRealizado(tid, externalRef, comprobanteUrl) {
+      return notificarCasino(tid, "pago-realizado", {
+        externalRef,
+        estado: "paid",
+        ...(comprobanteUrl ? { comprobanteUrl } : {}),
+      });
     },
   };
+}
+
+/**
+ * Helper comun: POST al endpoint del casino con HMAC + timestamp + nonce.
+ * Si el casino no responde (5xx, ECONNREFUSED, timeout), loguea warning
+ * y devuelve void — NO rompe la operacion interna (la carga/retiro ya
+ * quedo persistida, esto es solo una notificacion).
+ *
+ * v1: usa CASINO_WEBHOOK_SECRET_DEV como secret (suficiente para dev).
+ * Phase 5+: leer de casino_credentials.webhookSecret por tenant.
+ */
+async function notificarCasino(
+  tenantId: import("@/domain/ids").TenantId,
+  endpoint: "carga-acreditada" | "pago-realizado",
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const secret = process.env.CASINO_WEBHOOK_SECRET_DEV;
+  if (!secret) {
+    console.warn(
+      `[casino-adapter] CASINO_WEBHOOK_SECRET_DEV no configurado. Saltando notificacion '${endpoint}' para tenant ${String(tenantId)}.`,
+    );
+    return;
+  }
+
+  const body = JSON.stringify({
+    ...payload,
+    tenantId: String(tenantId),
+    timestamp: new Date().toISOString(),
+  });
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonce = randomUUID();
+  const firma = calcularFirma(secret, body, timestamp, nonce);
+
+  // En mock: apunta al endpoint del casino mock local.
+  // En prod: usar el baseUrl del casino del tenant (de casino_credentials).
+  const url = `/api/casino-mock/${String(tenantId)}/${endpoint}`;
+
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-casino-signature": firma,
+        "x-casino-timestamp": timestamp,
+        "x-casino-nonce": nonce,
+      },
+      body,
+      cache: "no-store",
+    });
+    if (!r.ok) {
+      console.warn(
+        `[casino-adapter] Casino respondio ${r.status} en '${endpoint}' (tenant=${String(tenantId)}, ext=${String(payload.externalRef)}). La operacion interna ya quedo OK.`,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      `[casino-adapter] No se pudo notificar '${endpoint}' al casino (tenant=${String(tenantId)}, ext=${String(payload.externalRef)}): ${err instanceof Error ? err.message : String(err)}. La operacion interna ya quedo OK.`,
+    );
+  }
 }

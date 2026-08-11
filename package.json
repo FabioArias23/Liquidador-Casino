@@ -15,6 +15,7 @@
     "db:push": "drizzle-kit push",
     "smoke": "tsx scripts/smoke-test.ts",
     "test:webhook": "tsx scripts/test-webhook.ts",
+    "test:notifications": "tsx scripts/test-notifications.ts",
     "check-env": "node --env-file=.env.local scripts/check-env.mjs",
     "mock:reset": "node -e \"require('node:fs').rmSync('.data/mock.json', { force: true }); console.log('mock borrado')\""
   },
