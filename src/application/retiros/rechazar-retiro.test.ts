@@ -21,7 +21,7 @@ import {
 import { codigos } from "@/application/errors";
 import { CODIGOS_ERROR_RETIRO } from "@/domain/retiros";
 import type { Retiro } from "@/domain/entities";
-import { seedDemo, seedIds } from "@/infrastructure/repositories/mock/seed";
+import { seedBase, seedIds } from "@/infrastructure/repositories/mock/seed";
 import { MockStore } from "@/infrastructure/repositories/mock/store";
 import { crearAuditMock } from "@/infrastructure/repositories/mock/audit.mock";
 import { crearMembersMock } from "@/infrastructure/repositories/mock/members.mock";
@@ -35,7 +35,7 @@ interface Setup {
 
 function setup(): Setup {
   const store = new MockStore();
-  seedDemo(store);
+  seedBase(store);
   const retiros = crearRetirosMock(store);
   return {
     deps: {

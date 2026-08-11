@@ -22,7 +22,7 @@ import {
 import { codigos } from "@/application/errors";
 import { CODIGOS_ERROR_RETIRO } from "@/domain/retiros";
 import type { Retiro } from "@/domain/entities";
-import { seedDemo, seedIds } from "@/infrastructure/repositories/mock/seed";
+import { seedBase, seedIds } from "@/infrastructure/repositories/mock/seed";
 import { MockStore } from "@/infrastructure/repositories/mock/store";
 import { crearAuditMock } from "@/infrastructure/repositories/mock/audit.mock";
 import { crearMembersMock } from "@/infrastructure/repositories/mock/members.mock";
@@ -36,7 +36,7 @@ interface Setup {
 
 function setup(): Setup {
   const store = new MockStore();
-  seedDemo(store);
+  seedBase(store);
   const retiros = crearRetirosMock(store);
   return {
     deps: {
@@ -234,7 +234,7 @@ describe("validarRetiro", () => {
   // documentado porque es el comportamiento que el código depende.)
   it("mock: actualizar con version desfasada devuelve CONCURRENCIA", async () => {
     const store = new MockStore();
-    seedDemo(store);
+    seedBase(store);
     const retiros = crearRetirosMock(store);
     const now = new Date();
     const r: Retiro = {

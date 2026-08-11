@@ -34,7 +34,7 @@ import { crearLedgerMock } from "@/infrastructure/repositories/mock/ledger.mock"
 import { crearMembersMock } from "@/infrastructure/repositories/mock/members.mock";
 import { crearProfilesMock } from "@/infrastructure/repositories/mock/profiles.mock";
 import { crearTenantsMock } from "@/infrastructure/repositories/mock/tenants.mock";
-import { seedDemo, seedIds } from "@/infrastructure/repositories/mock/seed";
+import { seedBase, seedIds } from "@/infrastructure/repositories/mock/seed";
 import { MockStore } from "@/infrastructure/repositories/mock/store";
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ interface Deps {
 
 function setup(): Deps {
   const store = new MockStore();
-  seedDemo(store);
+  seedBase(store);
   return {
     store,
     deps: {
