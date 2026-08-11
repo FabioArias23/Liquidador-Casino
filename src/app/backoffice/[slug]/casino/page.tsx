@@ -1,6 +1,7 @@
 import { PlugIcon } from "lucide-react";
 
-import { EmptyState } from "@/components/ui/empty-state";
+import { CasinoConfigForm } from "@/app/backoffice/[slug]/casino/casino-client";
+import { tenantId as toTenantId } from "@/domain/ids";
 import { auth, repos } from "@/lib/server";
 
 interface PageProps {
@@ -17,31 +18,43 @@ export default async function CasinoPage({ params }: PageProps) {
   if (!tenant) return null;
 
   // Permiso: solo tenant_admin (o superadmin) configura credenciales del casino.
-  if (!sesion.profile.isSuperadmin) {
+  let esAdminActual = sesion.profile.isSuperadmin;
+  if (!esAdminActual) {
     const member = await r.members.obtenerPorUsuarioYTenant(tenant.id, sesion.userId);
     if (!member || member.estado !== "activo" || member.rol !== "tenant_admin") {
       return null;
     }
+    esAdminActual = true;
   }
+
+  const creds = await r.casinoCredentials.obtenerPorTenant(toTenantId(tenant.id));
+  const initial = creds
+    ? {
+        adapterType: creds.adapterType,
+        baseUrl: creds.baseUrl,
+        tieneApiKey: creds.apiKeyCiphertext !== null,
+        tieneWebhookSecret: creds.webhookSecret !== null,
+      }
+    : undefined;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Casino</h1>
-          <p className="text-sm text-muted-foreground">
-            Configuración del adapter para traer cargas y retiros del casino.
-          </p>
-        </div>
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">Casino</h1>
+        <p className="text-sm text-muted-foreground">
+          Configuración del adapter para traer cargas y retiros del casino.
+        </p>
       </header>
 
-      <div className="rounded-xl border border-border bg-card">
-        <EmptyState
-          icon={PlugIcon}
-          title="Configuración del casino en construcción"
-          description="Acá vas a ver el adapter configurado, la URL base, y vas a poder cargar la API key (cifrada en reposo) y el webhook secret. El test de conexión contra el endpoint configurado ya está implementado."
-        />
-      </div>
+      <section className="rounded-xl border border-border bg-card p-5">
+        <header className="mb-4 flex items-center gap-2">
+          <PlugIcon className="size-4 text-muted-foreground" strokeWidth={1.75} />
+          <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Adapter y credenciales
+          </h2>
+        </header>
+        <CasinoConfigForm tenantSlug={slug} initial={initial} />
+      </section>
     </div>
   );
 }
