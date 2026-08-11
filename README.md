@@ -235,3 +235,6 @@ Cobertura actual (190 tests):
 - [`docs/demo-runbook.md`](docs/demo-runbook.md) — paso a paso de los 4
   escenarios de la demo (idempotencia, cuatro-ojos, rechazo, cierre diario).
   Pensado para que el operador del casino pueda ejecutarlo solo en ~20 min.
+- [`docs/routes.md`](docs/routes.md) — mapa completo de URLs navegables de la
+  app, agrupadas por rol (operador, supervisor, admin, superadmin) con IDs
+  concretos del seed. Útil para demos, onboarding y smoke-test manual.
